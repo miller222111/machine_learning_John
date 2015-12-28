@@ -5,13 +5,17 @@ date: "December 27, 2015"
 output: html_document
 ---
 
+# Exploratory Analysis and Variable Selection
+The data file provided had many columns with NA values, blank spaces, statistics, time stamps,row names,numbered columns, etc.. These variables were immediately deleted which resulted in 58 covariates left and one response variable. 
+
 ```{r,results=FALSE,echo=FALSE,cache=TRUE,message=FALSE}
 #Load libraries and data:
 library(caret);library(ggplot2);library(MASS);library(rattle);library(randomForest)
 train<-read.csv("training.csv");colnames(dat)
 ```
 
-
+# Model Building
+The training data was split into training($75\%$) and testing($25\%$) in order to determine expected out of sample error. 
 ```{r,echo=TRUE,cache=TRUE,results='hide',message=FALSE}
 #--------------Split Training Data into Training and Testing--------------#
 inTrain = createDataPartition(train$classe,p=0.75,list=FALSE)
@@ -20,7 +24,7 @@ testing=train[-inTrain,]
 table(training$classe);table(testing$classe)
 ```
 
-
+Initially, the linear discriminant analysis method was used, but that method failed miserably at predicting  the classes. So, the next method used was the random forest method, cross validation method was oob, and trees were limited to 100.
 ```{r,echo=TRUE,cache=TRUE,message=FALSE}
 #-------------------------------Random Forest--------------------------------#
 Model<-randomForest(classe~.,method="rf",data=training,prox=TRUE,
@@ -29,12 +33,14 @@ Model<-randomForest(classe~.,method="rf",data=training,prox=TRUE,
 Model$confusion
 ```
 
+Now, predict new values using the testing data, which came from the training data.
 ```{r,echo=TRUE,cache=TRUE,message=FALSE}
 #----------------------------Predict new values-----------------------------#
 testPC<-predict(Model,testing[-53])
 table(testPC,testing$classe)
 ```
 
+We observe that in sample and out of sample error are the same, so we expect the out of sample error on new data to be equivalent to the in sample error (optimistic here).
 ```{r,echo=TRUE,cache=TRUE,,message=FALSE}
 #-----------------------Expected Out Of Sample Error-----------------------#
 #In sample Error:

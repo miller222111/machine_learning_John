@@ -68,6 +68,9 @@ img {
 </div>
 
 
+<div id="exploratory-analysis-and-variable-selection" class="section level1">
+<h1>Exploratory Analysis and Variable Selection</h1>
+<p>The data file provided had many columns with NA values, blank spaces, statistics, time stamps,row names,numbered columns, etc.. These variables were immediately deleted which resulted in 58 covariates left and one response variable.</p>
 <pre><code>##  [1] &quot;X&quot;                    &quot;user_name&quot;            &quot;raw_timestamp_part_1&quot;
 ##  [4] &quot;raw_timestamp_part_2&quot; &quot;new_window&quot;           &quot;num_window&quot;          
 ##  [7] &quot;roll_belt&quot;            &quot;pitch_belt&quot;           &quot;yaw_belt&quot;            
@@ -88,11 +91,16 @@ img {
 ## [52] &quot;gyros_forearm_z&quot;      &quot;accel_forearm_x&quot;      &quot;accel_forearm_y&quot;     
 ## [55] &quot;accel_forearm_z&quot;      &quot;magnet_forearm_x&quot;     &quot;magnet_forearm_y&quot;    
 ## [58] &quot;magnet_forearm_z&quot;     &quot;classe&quot;</code></pre>
+</div>
+<div id="model-building" class="section level1">
+<h1>Model Building</h1>
+<p>The training data was split into training(<span class="math">\(75\%\)</span>) and testing(<span class="math">\(25\%\)</span>) in order to determine expected out of sample error.</p>
 <pre class="r"><code>#--------------Split Training Data into Training and Testing--------------#
 inTrain = createDataPartition(train$classe,p=0.75,list=FALSE)
 training=train[inTrain,]
 testing=train[-inTrain,]
 table(training$classe);table(testing$classe)</code></pre>
+<p>Initially, the linear discriminant analysis method was used, but that method failed miserably at predicting the classes. So, the next method used was the random forest method, cross validation method was oob, and trees were limited to 100.</p>
 <pre class="r"><code>#-------------------------------Random Forest--------------------------------#
 Model&lt;-randomForest(classe~.,method=&quot;rf&quot;,data=training,prox=TRUE,
              trControl=trainControl(method=&quot;oob&quot;,allowParallel=TRUE),ntree=100)
@@ -104,6 +112,7 @@ Model$confusion</code></pre>
 ## C    1   17 2541    8    0 0.010128555
 ## D    0    0   27 2383    2 0.012023217
 ## E    0    0    2    4 2700 0.002217295</code></pre>
+<p>Now, predict new values using the testing data, which came from the training data.</p>
 <pre class="r"><code>#----------------------------Predict new values-----------------------------#
 testPC&lt;-predict(Model,testing[-53])
 table(testPC,testing$classe)</code></pre>
@@ -114,6 +123,7 @@ table(testPC,testing$classe)</code></pre>
 ##      C    0    1  851    6    1
 ##      D    0    0    0  797    0
 ##      E    0    0    0    1  900</code></pre>
+<p>We observe that in sample and out of sample error are the same, so we expect the out of sample error on new data to be equivalent to the in sample error (optimistic here).</p>
 <pre class="r"><code>#-----------------------Expected Out Of Sample Error-----------------------#
 #In sample Error:
 error_in=Model$confusion;accuracy_in=1-error_in[,6]
@@ -127,6 +137,7 @@ diff=accuracy_out-accuracy_in
 
 #Thus, since in sample and out of sample errors are approximately the same, we 
 #expect the out of sample error to be equivalent to the in sample error.</code></pre>
+</div>
 
 
 </div>
