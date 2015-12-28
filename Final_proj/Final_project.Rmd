@@ -1,0 +1,52 @@
+---
+title: "Activity Tracker Data Analysis"
+author: "Andrew Miller"
+date: "December 27, 2015"
+output: html_document
+---
+
+```{r,results=FALSE,echo=FALSE,cache=TRUE,message=FALSE}
+#Load libraries and data:
+library(caret);library(ggplot2);library(MASS);library(rattle);library(randomForest)
+train<-read.csv("training.csv");colnames(dat)
+```
+
+
+```{r,echo=TRUE,cache=TRUE,results='hide',message=FALSE}
+#--------------Split Training Data into Training and Testing--------------#
+inTrain = createDataPartition(train$classe,p=0.75,list=FALSE)
+training=train[inTrain,]
+testing=train[-inTrain,]
+table(training$classe);table(testing$classe)
+```
+
+
+```{r,echo=TRUE,cache=TRUE,message=FALSE}
+#-------------------------------Random Forest--------------------------------#
+Model<-randomForest(classe~.,method="rf",data=training,prox=TRUE,
+             trControl=trainControl(method="oob",allowParallel=TRUE),ntree=100)
+#Model details:
+Model$confusion
+```
+
+```{r,echo=TRUE,cache=TRUE,message=FALSE}
+#----------------------------Predict new values-----------------------------#
+testPC<-predict(Model,testing[-53])
+table(testPC,testing$classe)
+```
+
+```{r,echo=TRUE,cache=TRUE,,message=FALSE}
+#-----------------------Expected Out Of Sample Error-----------------------#
+#In sample Error:
+error_in=Model$confusion;accuracy_in=1-error_in[,6]
+
+#Expected out of sample error:
+details<-confusionMatrix(testing$classe,testPC)$byClass
+accuracy_out=details[,8]
+
+#Difference between accuracies for in sample and out of sample:
+diff=accuracy_out-accuracy_in
+
+#Thus, since in sample and out of sample errors are approximately the same, we 
+#expect the out of sample error to be equivalent to the in sample error.
+```
